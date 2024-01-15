@@ -1,91 +1,61 @@
-class ColorsCard extends HTMLElement {
-    constructor() {
-        super()
+class CardComponent extends HTMLElement {
+    cardBorderRadius = '0.5rem'
+    cardHeight = '27rem'
+    cardPadding = '1rem'
 
+    constructor() {
+        
+        super()
         this.attachShadow({ mode: 'open' })
 
-        const colorClass = this.getAttribute('color-class') || 'default'
-        
-        const template = document.getElementById('colors-card');
-        const content = template.content.cloneNode(true);
-
-        this.shadowRoot.appendChild(content);
-
-        this.applyStyles(colorClass)
     }
 
-    applyStyles(colorClass) {
+    static get observedAttributes() {
+        return ['card-border-radius', 'card-height', 'card-padding']
+    }
 
-        const style = document.createElement('style')
-        style.textContent = `
-            ${
-                colorClass === 'primary'
-                ? `
-                    .bg-primary-color {
-                    background-color: #c9ab81;
-                    color: #f7f2ec;
-                    }
-                `
-                : ''
-            }
+    attributeChangedCallback(name, oldValue, newValue) {
+        const attributesMap = {
+            'card-border-radius': 'cardBorderRadius',
+            'card-height': 'cardHeight',
+            'card-padding': 'cardPadding'
+        }
+        console.log('attributeChangedCallback', name, oldValue, newValue)
+        console.log(attributesMAp[name])
+        this[attributesMap[name]] = newValue
+        this.render()
+    }
 
-            ${
-                colorClass === 'secondary'
-                ? `
-                    .bg-primary-color {
-                    background-color: #59335c;
-                    color: #d5b7d7;
-                    }
-                `
-                : ''
-            }
+    connectedCallback() {
+        this.render()
+    }
 
-            ${
-                colorClass === 'neutral'
-                ? `
-                    .bg-primary-color {
-                    background-color: #333333;
-                    color: #b3b3b3;
-                    }
-                `
-                : ''
-            }
+    render() {
+        const { shadowHost } = this
+        this.shadowRoot.innerHTML = ''
+        this.shadowRoot.appendChild(this.htmlToElement().content)
+    }
 
-            ${
-                colorClass === 'warning'
-                ? `
-                    .bg-primary-color {
-                    background-color: #cd0707;
-                    color: #fed5d5;
-                    }
-                `
-                : ''
-            }
-
-            ${
-                colorClass === 'info'
-                ? `
-                    .bg-primary-color {
-                    background-color: #f0ad4e;
-                    color: white;
-                    }
-                `
-                : ''
-            }
-
-            ${
-                colorClass === 'text'
-                ? `
-                    .bg-primary-color {
-                    background-color: white;
-                    color: #b3b3b3;
-                    }
-                `
-                : ''
-            }
+    htmlToElement(){
+        const html = `
+            <style>
+                .card-component__container {
+                    padding: ${this.cardPadding};
+                    border-radius: ${this.cardBorderRadius};
+                    background-color: var(--card-component-bg-color);
+                    height: ${this.cardHeidght};
+                }
+            </style>
+            <div class="card-component">
+                <div class="card-component__container">
+                    <slot></slot>
+                </div>
+            </div>
         `
-        this.shadowRoot.appendChild(style)
+        const template = document.createElement('template')
+        template.innerHTML = html
+        return template
     }
 }
 
-window.customElements.define('colors-card', ColorsCard);
+customElements.define('card-component', CardComponent)

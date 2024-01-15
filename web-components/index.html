@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web components</title>
     <link rel="stylesheet" href="../css/global.css">
+
+
+    <script>
+        window.globalContext = {
+            _name: 'Kiko',
+            
+            set name(value) {
+                this._name = value;
+                document.dispatchEvent(new Event('contextNameChanged'))
+            },
+
+            get name() {
+                return this._name
+            }
+        }
+    </script>
 </head>
 <body>
     <style>
@@ -76,7 +92,7 @@
     <div id="shadow-host"></div>
 
     <button>Mi botón 2</button>
-    
+
     <my-copyright></my-copyright>
 
     <p>Esto es un elemento protegido por copyright <my-copyright></my-copyright></p>
@@ -94,9 +110,105 @@
         <span slot="button-text">Mi botón WC attribute</span>
     </special-button>
 
-    
 
-    <!-- <script>
+    <h2>Bubbling Test</h2>
+    <div id="bubbling-test">
+        <div id="bubbling-test-child">
+            <div id="bubbling-test-grandchild"></div>
+        </div>
+    </div>
+
+    <button id="click-hidden-div">Bubble Hidden Div</button>
+    <button id="click-bubbling-test-grandchild">Bubble Grandchild</button>
+    <button id="click-bubbling-test-child">Bubble Child</button>
+    <button id="click-bubbling-test">Bubble Parent</button>
+
+    <style>
+        #bubbling-test {
+            background-color: var(--primary-color);
+            padding: 1rem;
+        }
+        #bubbling-test-child {
+            background-color: var(--secondary-color);
+            padding: 1rem;
+        }
+        #bubbling-test-grandchild {
+            background-color: var(--neutral-color);
+            padding: 1rem;
+        }
+    </style>
+
+
+    <script>
+        const bubblingEvent = new Event('bubblingEvent', {
+            bubbles: true,
+            cancelable: true,
+            composed: true // si el elemento tiene la capacidad para atravesar. si es false los shodwdom no traspasen
+        })
+
+        const bubblingTest = document.getElementById('bubbling-test')
+        const bubblingTestChild = document.getElementById('bubbling-test-child')
+        const bubblingTestGrandchild = document.getElementById('bubbling-test-grandchild')
+
+        const clickBubblingTestGrandchild = document.getElementById('click-bubbling-test-grandchild')
+        const clickBubblingTestChild = document.getElementById('click-bubbling-test-child')
+        const clickBubblingTest = document.getElementById('click-bubbling-test')
+        const clickHiddenDiv = document.getElementById('click-hidden-div')
+
+        bubblingTestGrandchild.attachShadow({ mode:'open' })
+        const bubblingTestGrandchildShadow = bubblingTestGrandchild.shadowRoot
+        const hiddenDiv = document.createElement('div')
+        hiddenDiv.setAttribute('id', 'hidden-div')
+        hiddenDiv.style.backgroundColor = 'var(--info-color)'
+        hiddenDiv.style.padding = '1rem'
+        bubblingTestGrandchildShadow.appendChild(hiddenDiv)
+
+        clickBubblingTestGrandchild.addEventListener('click', () => {
+            bubblingTestGrandchild.dispatchEvent(bubblingEvent)
+        })
+
+        clickBubblingTestChild.addEventListener('click', () => {
+            bubblingTestChild.dispatchEvent(bubblingEvent)
+        })
+
+        clickBubblingTest.addEventListener('click', () => {
+            bubblingTest.dispatchEvent(bubblingEvent)
+        })
+
+        clickHiddenDiv.addEventListener('click', () => {
+            hiddenDiv.dispatchEvent(bubblingEvent)
+        })
+
+        bubblingTest.addEventListener('bubblingEvent', (e) => {
+            console.log('bubblingTest', e.target)
+        })
+
+        bubblingTestChild.addEventListener('bubblingEvent', (e) => {
+            e.stopPropagation()
+            console.log('bubblingTestChild', e.target)
+        })
+
+        bubblingTestGrandchild.addEventListener('bubblingEvent', (e) => {
+            console.log('bubblingTestGrandchild', e.target)
+        })
+
+        hiddenDiv.addEventListener('bubblingEvent', (e) => {
+            console.log('hiddenDiv', e.target)
+        })
+
+        function renderHiddenDiv() {
+            hiddenDiv.textContent = window.globalContext.name
+        }
+
+        renderHiddenDiv()
+
+        document.addEventListener('contextNameChanged', () => {
+            renderHiddenDiv()
+        })
+
+    </script>
+
+    <script>
         const specialBtnTemplate = document.getElementById('special-button');
         const shadowHost = document.getElementById('shadow-host');
         shadowHost.attachShadow({ mode: 'open' });
@@ -112,7 +224,7 @@
                 this.appendChild(myElement);
             }
         });
-    </script> -->
+    </script>
     <script src="./special-button/special-button.js"></script>
 </body>
 </html>
